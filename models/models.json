@@ -1,0 +1,43 @@
+{
+  "models": [
+    {
+      "id": "claude-sonnet-4-5",
+      "provider": "anthropic",
+      "label": "Claude Sonnet 4.5",
+      "contextWindow": 200000,
+      "maxOutput": 64000,
+      "supportsNativeTools": true,
+      "supportsParallelToolCalls": true,
+      "supportsImages": true,
+      "supportsCaching": true,
+      "roles": ["main"],
+      "pricing": { "input": 3, "output": 15, "cacheRead": 0.3, "cacheWrite": 3.75 }
+    },
+    {
+      "id": "gpt-4.1",
+      "provider": "openai",
+      "label": "GPT-4.1",
+      "contextWindow": 1047576,
+      "maxOutput": 32768,
+      "supportsNativeTools": true,
+      "supportsParallelToolCalls": true,
+      "supportsImages": true,
+      "supportsCaching": true,
+      "roles": ["main"],
+      "pricing": { "input": 2, "output": 8, "cacheRead": 0.5, "cacheWrite": 2 }
+    },
+    {
+      "id": "gpt-4.1-mini",
+      "provider": "openai",
+      "label": "GPT-4.1 mini",
+      "contextWindow": 1047576,
+      "maxOutput": 32768,
+      "supportsNativeTools": true,
+      "supportsParallelToolCalls": true,
+      "supportsImages": true,
+      "supportsCaching": true,
+      "roles": ["utility", "intake"],
+      "pricing": { "input": 0.4, "output": 1.6, "cacheRead": 0.1, "cacheWrite": 0.4 }
+    }
+  ]
+}

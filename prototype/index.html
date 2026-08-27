@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Laika — UI prototype</title>
+  <link rel="stylesheet" href="laika.css" />
+</head>
+<body>
+  <div class="stage">
+    <div class="toolbar">
+      <span class="toolbar-title">Laika prototype</span>
+      <div class="scenes" role="tablist">
+        <button class="scene is-on" data-scene="running">Chat</button>
+        <button class="scene" data-scene="review">Review</button>
+        <button class="scene" data-scene="onboard">First run</button>
+        <button class="replay" id="replay" type="button">Replay edit</button>
+        <button class="replay" id="orbitToggle" type="button">Orbit</button>
+      </div>
+      <span class="hint">Orbit infers buckets from the tree and file types. Double-click a tile for the editor.</span>
+    </div>
+
+    <div class="ide" id="ide">
+      <header class="titlebar">
+        <nav class="menu">
+          <span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Run</span><span>Terminal</span><span>Help</span>
+        </nav>
+        <div class="win-title">laika · src/auth.ts — Visual Studio Code</div>
+        <div class="win-controls" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </div>
+      </header>
+
+      <div class="workbench">
+        <aside class="activity" aria-label="Activity bar">
+          <button class="act is-on" id="actLaika" title="Laika" aria-label="Laika">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <circle cx="12" cy="12" r="3.1" fill="currentColor"/>
+              <ellipse cx="12" cy="12" rx="9" ry="4.1" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </button>
+          <button class="act" id="actOrbit" title="Orbit — 50,000 ft morph" aria-label="Orbit">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <rect x="3" y="3" width="8" height="8" stroke="currentColor" stroke-width="1.6"/>
+              <rect x="13" y="3" width="8" height="5" stroke="currentColor" stroke-width="1.6"/>
+              <rect x="13" y="10" width="8" height="11" stroke="currentColor" stroke-width="1.6"/>
+              <rect x="3" y="13" width="8" height="8" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </button>
+          <button class="act" title="Explorer" aria-label="Explorer">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <path d="M7 3h7l5 5v13H7V3z" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </button>
+          <button class="act" title="Search" aria-label="Search">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6"/>
+              <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="act" title="Source Control" aria-label="Source Control">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <circle cx="6" cy="6" r="2.2" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="6" cy="18" r="2.2" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="18" cy="12" r="2.2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M6 8v8M8 6h4a4 4 0 0 1 4 4" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+          <button class="act act-bottom" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </aside>
+
+        <section class="sidebar" aria-label="Laika">
+          <header class="side-head">
+            <strong>Laika</strong>
+            <span class="mode">Guarded</span>
+          </header>
+
+          <div class="panel" data-show="running review">
+            <div class="chat" id="chat">
+              <p class="msg user">Add rate limiting to the sign-in path and cover it with tests.</p>
+              <div class="tools" id="tools">
+                <div data-step="read">Read src/auth.ts:120–180</div>
+                <div data-step="search">Search rateLimit · 12 hits</div>
+                <button class="tool-edit" id="editLine" type="button">
+                  <span class="edit-label">Editing src/auth.ts</span>
+                  <span class="delta"><span class="plus" id="plus">+0</span> <span class="minus" id="minus">−0</span></span>
+                </button>
+              </div>
+              <p class="msg assistant" id="assistantMsg" hidden>Added a token-bucket module, rewrote retry so it does not mask rate limits, stripped debug tracing from the logger, and replaced the cookie parser on the web client. Waiting on diagnostics.</p>
+
+              <div class="approval" data-show="review">
+                <div class="approval-kicker">Needs approval</div>
+                <div class="approval-cmd">pnpm test</div>
+                <div class="approval-meta">Risk high · execute</div>
+                <div class="approval-actions">
+                  <button class="btn btn-primary" type="button">Allow once</button>
+                  <button class="btn" type="button">Reject</button>
+                </div>
+                <button class="policy" type="button">Always allow pnpm test</button>
+                <button class="policy" type="button">Always allow pnpm *</button>
+              </div>
+
+              <div class="queue" data-show="review">
+                <div class="queue-head">Review queue <span>j / k · a accept · r reject</span></div>
+                <div class="hunk">
+                  <div>
+                    <div class="hunk-file">src/auth.ts</div>
+                    <div class="hunk-meta">+ rateLimit(signIn) · mixed</div>
+                  </div>
+                  <div class="hunk-acts">
+                    <button type="button">accept</button>
+                    <button class="danger" type="button">reject</button>
+                  </div>
+                </div>
+                <div class="hunk">
+                  <div>
+                    <div class="hunk-file">src/http/retry.ts</div>
+                    <div class="hunk-meta">rewrite · +12 −10</div>
+                  </div>
+                  <div class="hunk-acts">
+                    <button type="button">accept</button>
+                    <button class="danger" type="button">reject</button>
+                  </div>
+                </div>
+                <div class="hunk">
+                  <div>
+                    <div class="hunk-file">src/logger.ts</div>
+                    <div class="hunk-meta">strip debug/trace · −10</div>
+                  </div>
+                  <div class="hunk-acts">
+                    <button type="button">accept</button>
+                    <button class="danger" type="button">reject</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dock">
+              <button class="drawer-bar" id="drawerToggle" type="button" aria-expanded="false" aria-controls="drawer">
+                <span class="drawer-left">
+                  <span class="pulse" data-show="running"></span>
+                  <span class="status-verb" data-running="reading auth.ts" data-review="idle">reading auth.ts</span>
+                  <span class="stat">118K</span>
+                  <span class="stat">$1.24</span>
+                  <span class="stat cache">86% cache</span>
+                </span>
+                <span class="drawer-right">
+                  <span class="orbit-chip" id="orbitChip">Orbit</span>
+                  <span class="cancel" data-show="running">Cancel</span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </span>
+              </button>
+
+              <div class="drawer" id="drawer" hidden>
+                <div class="drawer-title">Working set</div>
+                <ul class="ledger">
+                  <li><span>Task brief</span><span><em>0.4K</em> <button type="button">unpin</button></span></li>
+                  <li><span>src/auth.ts v3</span><span><em>1.8K</em> <button type="button">evict</button></span></li>
+                  <li><span>src/rateLimit.ts</span><span><em>0.9K</em> <button type="button">evict</button></span></li>
+                  <li><span>Plan · 4 steps</span><span><em>0.3K</em> <button type="button">pin</button></span></li>
+                  <li><span>Decision log</span><span><em>0.6K</em> <button type="button">pin</button></span></li>
+                  <li><span>pnpm test.log</span><span><em>handle</em> <button type="button">evict</button></span></li>
+                </ul>
+                <div class="drawer-foot">118K in window · 43K after next compact</div>
+              </div>
+
+              <form class="composer" onsubmit="return false">
+                <textarea id="composer" rows="2" placeholder="Message Laika"></textarea>
+              </form>
+            </div>
+          </div>
+
+          <div class="onboard" data-show="onboard">
+            <svg class="orbit" viewBox="0 0 24 24" width="36" height="36" fill="none">
+              <circle cx="12" cy="12" r="3.1" fill="currentColor"/>
+              <ellipse cx="12" cy="12" rx="9" ry="4.1" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+            <h1>Laika</h1>
+            <p>Paste one API key. Auto-detect the provider. Start in under a minute.</p>
+            <input type="password" placeholder="sk-ant-… or OpenAI / Gemini / OpenRouter" />
+            <button class="btn btn-primary" type="button">Continue</button>
+            <div class="defaults">Guarded mode · redaction on · workspace jail on</div>
+          </div>
+        </section>
+
+        <main class="editor">
+          <div class="tabs" id="tabs"></div>
+          <div class="code" id="code" role="textbox" aria-label="editor"></div>
+          <section class="aerial" id="aerial" hidden>
+            <header class="aerial-head">
+              <div class="aerial-title">
+                <strong>Orbit</strong>
+                <span class="aerial-sub" id="aerialSub">workspace · waiting</span>
+              </div>
+              <div class="aerial-stats" id="aerialStats">0 files · +0 −0</div>
+              <button class="aerial-close" id="orbitClose" type="button">Esc</button>
+            </header>
+            <div class="strip" id="strip" role="img" aria-label="Repository heatmap"></div>
+            <div class="mosaic" id="mosaic"></div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+  <script src="laika.js"></script>
+</body>
+</html>
