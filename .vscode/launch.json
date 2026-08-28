@@ -5,9 +5,16 @@
       "name": "Launch Laika",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/vscode"],
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode",
+        "--disable-extensions",
+        "${workspaceFolder}"
+      ],
       "outFiles": ["${workspaceFolder}/packages/vscode/dist/**/*.js"],
-      "preLaunchTask": "build"
+      "preLaunchTask": "build",
+      "sourceMaps": true,
+      "debugWebWorkerExtensions": false
     }
   ]
 }
