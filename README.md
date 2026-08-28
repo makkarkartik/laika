@@ -13,7 +13,9 @@ Then **Run → Launch Laika** (F5) in this workspace.
 
 1. Command Palette → **Laika: Set API Key** (stored in VS Code SecretStorage)
 2. Settings: `laika.provider` (`anthropic` | `openai`), `laika.model`, `laika.profile`
-3. Open the Laika sidebar and send a message
+3. Open the Laika sidebar and send a message. Guarded mode auto-allows reads; edits and unknown commands ask once.
+
+`laika.autonomy` (`manual` | `guarded` | `autonomous`) and `.laika/policy.json` govern the tool path. Cancel is first-click (`Laika: Cancel` or the sidebar button).
 
 `laika.modelOverrides` always wins over `models/models.json` — including a larger `contextWindow` than the registry default.
 

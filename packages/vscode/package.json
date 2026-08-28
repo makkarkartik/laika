@@ -4,6 +4,7 @@
   "description": "BYOK coding agent with a usage-anchored context engine and Orbit, a 50,000-ft view of the live codebase morph.",
   "version": "0.0.1",
   "publisher": "laika",
+  "icon": "media/laika.png",
   "private": true,
   "engines": {
     "vscode": "^1.90.0"
@@ -14,7 +15,8 @@
     "onCommand:laika.open",
     "onCommand:laika.orbit.toggle",
     "onCommand:laika.keys.set",
-    "onCommand:laika.keys.clear"
+    "onCommand:laika.keys.clear",
+    "onCommand:laika.cancel"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -31,12 +33,17 @@
       },
       {
         "command": "laika.keys.set",
-        "title": "Set API Key",
+        "title": "Provider Keys",
         "category": "Laika"
       },
       {
         "command": "laika.keys.clear",
         "title": "Clear API Key",
+        "category": "Laika"
+      },
+      {
+        "command": "laika.cancel",
+        "title": "Cancel",
         "category": "Laika"
       }
     ],
@@ -63,6 +70,12 @@
           "type": "object",
           "default": {},
           "description": "Per-model capability overrides. User values always win over the shipped registry (never a truthy 128k default)."
+        },
+        "laika.autonomy": {
+          "type": "string",
+          "enum": ["manual", "guarded", "autonomous"],
+          "default": "guarded",
+          "description": "Guarded auto-approves safe reads and allowlisted commands; everything else asks. Destructive commands always prompt."
         }
       }
     },
@@ -71,7 +84,7 @@
         {
           "id": "laika",
           "title": "Laika",
-          "icon": "media/laika.svg"
+          "icon": "media/mark.png"
         }
       ]
     },
@@ -80,7 +93,8 @@
         {
           "type": "webview",
           "id": "laika.sidebar",
-          "name": "Laika"
+          "name": "Laika",
+          "retainContextWhenHidden": true
         }
       ]
     }

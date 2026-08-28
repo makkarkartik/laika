@@ -54,6 +54,29 @@ describe("Anthropic adapter", () => {
     });
   });
 
+  it("emits a tool_call only after the JSON block is complete", async () => {
+    const out = await collect(
+      mapAnthropicStream(
+        events([
+          {
+            type: "content_block_start",
+            index: 0,
+            content_block: { type: "tool_use", id: "t1", name: "read_file" },
+          },
+          { type: "content_block_delta", index: 0, delta: { type: "input_json_delta", partial_json: '{"pa' } },
+          { type: "content_block_delta", index: 0, delta: { type: "input_json_delta", partial_json: 'th":"a.ts"}' } },
+          { type: "content_block_stop", index: 0 },
+          { type: "message_delta", delta: { stop_reason: "tool_use" } },
+          { type: "message_stop" },
+        ]),
+      ),
+    );
+    expect(out.filter((e) => e.type === "tool_call")).toEqual([
+      { type: "tool_call", call: { id: "t1", name: "read_file", input: { path: "a.ts" } } },
+    ]);
+    expect(out.at(-1)).toEqual({ type: "done", stopReason: "tool_use" });
+  });
+
   it("forwards model and maxOutput through the client", async () => {
     let captured: unknown;
     const provider = new AnthropicProvider({

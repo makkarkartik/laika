@@ -1,11 +1,20 @@
 import OpenAI from "openai";
+import { parseToolArguments, toOpenAIMessages, toOpenAITools } from "./messages.js";
 import type { OpenAIUsageLike } from "./usage.js";
 import { mergeUsage, missingUsage, normalizeOpenAIUsage } from "./usage.js";
-import type { ChatRequest, LLMProvider, StopReason, StreamEvent } from "./types.js";
+import type { ChatRequest, LLMProvider, StopReason, StreamEvent, ToolCall } from "./types.js";
 
 export type OpenAILikeChunk = {
   choices?: Array<{
-    delta?: { content?: string | null };
+    delta?: {
+      content?: string | null;
+      reasoning_content?: string | null;
+      tool_calls?: Array<{
+        index?: number;
+        id?: string;
+        function?: { name?: string; arguments?: string };
+      }>;
+    };
     finish_reason?: string | null;
   }>;
   usage?: OpenAIUsageLike | null;
@@ -13,8 +22,9 @@ export type OpenAILikeChunk = {
 
 export type OpenAIStreamParams = {
   model: string;
-  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+  messages: ReturnType<typeof toOpenAIMessages>;
   max_tokens: number;
+  tools?: ReturnType<typeof toOpenAITools>;
 };
 
 export type OpenAIClientLike = {
@@ -27,12 +37,15 @@ function stopReason(raw: string | null | undefined): StopReason {
   return "end";
 }
 
+type Acc = { id: string; name: string; args: string };
+
 export async function* mapOpenAIStream(
   chunks: AsyncIterable<OpenAILikeChunk>,
   signal?: AbortSignal,
 ): AsyncIterable<StreamEvent> {
   let usage = undefined as ReturnType<typeof missingUsage> | undefined;
   let stop: StopReason = "end";
+  const tools = new Map<number, Acc>();
   try {
     for await (const chunk of chunks) {
       if (signal?.aborted) {
@@ -42,6 +55,16 @@ export async function* mapOpenAIStream(
       const choice = chunk.choices?.[0];
       const text = choice?.delta?.content;
       if (text) yield { type: "text", text };
+      const thinking = choice?.delta?.reasoning_content;
+      if (thinking) yield { type: "thinking", text: thinking };
+      for (const part of choice?.delta?.tool_calls ?? []) {
+        const index = part.index ?? 0;
+        const acc = tools.get(index) ?? { id: "", name: "", args: "" };
+        if (part.id) acc.id = part.id;
+        if (part.function?.name) acc.name = part.function.name;
+        if (part.function?.arguments) acc.args += part.function.arguments;
+        tools.set(index, acc);
+      }
       if (choice?.finish_reason) stop = stopReason(choice.finish_reason);
       if (chunk.usage) usage = mergeUsage(usage, normalizeOpenAIUsage(chunk.usage));
     }
@@ -51,6 +74,16 @@ export async function* mapOpenAIStream(
       return;
     }
     throw err;
+  }
+  if (stop === "tool_use") {
+    for (const acc of [...tools.entries()].sort(([a], [b]) => a - b).map(([, v]) => v)) {
+      const call: ToolCall = {
+        id: acc.id || acc.name,
+        name: acc.name,
+        input: parseToolArguments(acc.args),
+      };
+      yield { type: "tool_call", call };
+    }
   }
   yield { type: "usage", usage: usage ?? missingUsage() };
   yield { type: "done", stopReason: stop };
@@ -64,17 +97,18 @@ function sdkClient(apiKey: string): OpenAIClientLike {
   return {
     async *stream(params, signal) {
       const client = new OpenAI({ apiKey });
-      const stream = await client.chat.completions.create(
+      const stream = (await client.chat.completions.create(
         {
           model: params.model,
-          messages: params.messages,
+          messages: params.messages as never,
           max_tokens: params.max_tokens,
           stream: true,
           stream_options: { include_usage: true },
+          ...(params.tools ? { tools: params.tools } : {}),
         },
         { signal },
-      );
-      for await (const chunk of stream) yield chunk as OpenAILikeChunk;
+      )) as AsyncIterable<OpenAILikeChunk>;
+      for await (const chunk of stream) yield chunk;
     },
   };
 }
@@ -88,16 +122,15 @@ export class OpenAIProvider implements LLMProvider {
   }
 
   async *complete(request: ChatRequest): AsyncIterable<StreamEvent> {
-    const messages: OpenAIStreamParams["messages"] = [];
-    if (request.system !== undefined) messages.push({ role: "system", content: request.system });
-    for (const message of request.messages) {
-      messages.push({ role: message.role, content: message.content });
-    }
+    const params: OpenAIStreamParams = {
+      model: request.model,
+      messages: toOpenAIMessages(request.system, request.messages),
+      max_tokens: request.maxOutput,
+    };
+    const tools = toOpenAITools(request.tools);
+    if (tools !== undefined) params.tools = tools;
     yield* mapOpenAIStream(
-      this.client.stream(
-        { model: request.model, messages, max_tokens: request.maxOutput },
-        request.signal,
-      ),
+      this.client.stream(params, request.signal),
       request.signal,
     );
   }

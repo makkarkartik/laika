@@ -39,6 +39,31 @@ describe("OpenAI adapter", () => {
     expect(out.find((e) => e.type === "usage")).toMatchObject({ usage: { estimated: true } });
   });
 
+  it("emits tool_calls only after finish_reason, never on partial argument fragments", async () => {
+    const first: OpenAILikeChunk = {
+      choices: [
+        {
+          delta: {
+            tool_calls: [{ index: 0, id: "c1", function: { name: "read_file", arguments: "{\"pa" } }],
+          },
+        },
+      ],
+    };
+    const second: OpenAILikeChunk = {
+      choices: [
+        {
+          delta: {
+            tool_calls: [{ index: 0, function: { arguments: "th\":\"a.ts\"}" } }],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+    };
+    const out = await collect(mapOpenAIStream(chunks([first, second])));
+    const calls = out.filter((e) => e.type === "tool_call");
+    expect(calls).toEqual([{ type: "tool_call", call: { id: "c1", name: "read_file", input: { path: "a.ts" } } }]);
+  });
+
   it("forwards model, system, and maxOutput", async () => {
     let captured: unknown;
     const provider = new OpenAIProvider({

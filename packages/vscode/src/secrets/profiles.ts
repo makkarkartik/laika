@@ -40,12 +40,21 @@ export class SecretProfiles {
     return { id, provider, apiKey };
   }
 
-  async setKey(apiKey: string): Promise<void> {
-    await this.ctx.secrets.store(keyOf(this.profileId(), this.provider()), apiKey);
+  async keyedProviders(): Promise<ProviderId[]> {
+    const id = this.profileId();
+    const out: ProviderId[] = [];
+    for (const provider of ["anthropic", "openai"] as const) {
+      if (await this.ctx.secrets.get(keyOf(id, provider))) out.push(provider);
+    }
+    return out;
   }
 
-  async clearKey(): Promise<void> {
-    await this.ctx.secrets.delete(keyOf(this.profileId(), this.provider()));
+  async setKey(apiKey: string, provider: ProviderId): Promise<void> {
+    await this.ctx.secrets.store(keyOf(this.profileId(), provider), apiKey);
+  }
+
+  async clearKey(provider = this.provider()): Promise<void> {
+    await this.ctx.secrets.delete(keyOf(this.profileId(), provider));
   }
 }
 

@@ -17,16 +17,32 @@ export type CanonicalUsage = {
   estimated: boolean;
 };
 
-export type ChatTurn = {
-  role: "user" | "assistant";
-  content: string;
+export type ToolDefinition = {
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
 };
+
+export type ToolCall = {
+  id: string;
+  name: string;
+  input: unknown;
+};
+
+export type ChatMessage =
+  | { role: "user"; content: string }
+  | { role: "assistant"; content: string; toolCalls?: ToolCall[] }
+  | { role: "tool"; toolUseId: string; name: string; content: string; isError?: boolean };
+
+/** @deprecated Use ChatMessage. Kept for call sites that only send plain turns. */
+export type ChatTurn = Extract<ChatMessage, { role: "user" | "assistant" }>;
 
 export type ChatRequest = {
   model: string;
-  messages: ChatTurn[];
+  messages: ChatMessage[];
   maxOutput: number;
   system?: string;
+  tools?: ToolDefinition[];
   signal?: AbortSignal;
 };
 
@@ -34,6 +50,8 @@ export type StopReason = "end" | "tool_use" | "max_tokens" | "abort";
 
 export type StreamEvent =
   | { type: "text"; text: string }
+  | { type: "thinking"; text: string }
+  | { type: "tool_call"; call: ToolCall }
   | { type: "usage"; usage: CanonicalUsage }
   | { type: "done"; stopReason: StopReason };
 

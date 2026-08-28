@@ -7,6 +7,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./jail": {
+      "types": "./src/tools/jail.ts",
+      "default": "./src/tools/jail.ts"
     }
   },
   "scripts": {
